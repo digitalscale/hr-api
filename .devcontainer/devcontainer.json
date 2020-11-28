@@ -1,0 +1,56 @@
+{
+	"name": "Golang",
+	"dockerComposeFile": "docker-compose.yml",
+	"runServices": [],
+	"service": "api",
+	"workspaceFolder": "/usr/src/hr",
+	// Container environment variables.
+	"remoteEnv": {
+		"GO111MODULE": "on"
+	},
+	// Container specific settings values.
+	"settings": {
+		"gopls": {
+			"completeUnimported": true,
+			"usePlaceholders": true,
+		},
+		"go.useLanguageServer": true,
+		"go.lintTool": "golangci-lint",
+		"go.lintOnSave": "package",
+		"go.vetOnSave": "off",
+		"go.buildOnSave": "off",
+		"go.useCodeSnippetsOnFunctionSuggest": true,
+		"go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
+		"go.gotoSymbol.includeGoroot": true,
+		"go.gotoSymbol.includeImports": true,
+		"go.testFlags": [
+			"-v"
+		],
+		"[go]": {
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			},
+			"editor.snippetSuggestions": "none"
+		},
+		"[go.mod]": {
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		},
+	},
+	// List of extensions installed inside the container.
+	"extensions": [
+		"bierner.markdown-mermaid",
+		"golang.go",
+		"eamodio.gitlens",
+		"humao.rest-client",
+		"mhutchie.git-graph",
+		"premparihar.gotestexplorer",
+		"redhat.vscode-yaml",
+		"tabnine.tabnine-vscode",
+		"yzhang.markdown-all-in-one",
+		"zxh404.vscode-proto3",
+	]
+}

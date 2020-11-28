@@ -1,0 +1,94 @@
+version: "3"
+
+services:
+  api:
+    image: git.kodix.dev/buildkit/golang:latest
+    command: sleep infinity
+    volumes:
+      - ..:/usr/src/hr:cached
+    ports:
+      - "8080:8080"
+    networks:
+      hr:
+
+  etcd:
+    image: quay.io/coreos/etcd:latest
+    command:
+      - etcd
+      - --name=etcd
+      - --data-dir=/var/lib/etcd/data
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-cluster=etcd=http://etcd:2380
+      - --initial-cluster-state=new
+    volumes:
+      - etcd:/var/lib/etcd/data
+    networks:
+      hr:
+
+  stolon-init:
+    image: sorintlab/stolon:master-pg12
+    command:
+      - stolonctl
+      - --cluster-name=hr
+      - --store-backend=etcdv3
+      - --store-endpoints=http://etcd:2379
+      - init
+      - --yes
+    depends_on:
+      - etcd
+    restart: on-failure
+    networks:
+      hr:
+
+  keeper:
+    image: sorintlab/stolon:master-pg12
+    command:
+      - gosu
+      - stolon
+      - stolon-keeper
+      - --uid=1
+      - --cluster-name=hr
+      - --store-backend=etcdv3
+      - --store-endpoints=http://etcd:2379
+      - --pg-listen-address=keeper
+      - --pg-su-username=postgres
+      - --pg-su-password=postgres
+      - --pg-repl-username=stolone
+      - --pg-repl-password=stolone
+      - --data-dir=/var/lib/postgresql/data
+    environment:
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - stolon:/var/lib/postgresql/data
+    depends_on:
+      - stolon-init
+    networks:
+      hr:
+
+  stolon-proxy:
+    image: sorintlab/stolon:master-pg12
+    command:
+      - gosu
+      - stolon
+      - stolon-proxy
+      - --listen-address=0.0.0.0
+      - --cluster-name=hr
+      - --store-backend=etcdv3
+      - --store-endpoints=http://etcd:2379
+    ports:
+      - 5432:5432
+    depends_on:
+      - stolon-init
+    networks:
+      hr:
+
+volumes:
+  etcd:
+  nats:
+  stolon:
+
+networks:
+  hr:
