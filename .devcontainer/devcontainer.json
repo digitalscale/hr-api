@@ -26,6 +26,10 @@
 		"go.testFlags": [
 			"-v"
 		],
+		"go.generateTestsFlags": [
+			"-template_dir",
+			"/usr/local/include/gotests",
+		],
 		"[go]": {
 			"editor.formatOnSave": true,
 			"editor.codeActionsOnSave": {
