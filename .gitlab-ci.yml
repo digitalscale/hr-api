@@ -1,0 +1,19 @@
+stages:
+  - build
+  - deploy
+
+variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+
+build:
+  stage: build
+  script:
+    - make build
+    - docker build -t $IMAGE_TAG -f .docker/Dockerfile .
+    - docker push $IMAGE_TAG
+
+
+deploy:
+  stage: deploy
+  script:
+    - docker service update --force --image $IMAGE_TAG hr_api
