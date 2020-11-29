@@ -36,16 +36,6 @@ func (status VacancyStatus) MarshalText() ([]byte, error) {
 	return []byte(v), nil
 }
 
-func (status *VacancyStatus) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case string:
-		return status.UnmarshalText([]byte(v))
-	case []byte:
-		return status.UnmarshalText(v)
-	}
-	return nil
-}
-
 var vacancyStatusTexts = map[string]VacancyStatus{
 	"":         VacancyStatusNone,
 	"none":     VacancyStatusNone,
@@ -62,6 +52,16 @@ func (status *VacancyStatus) UnmarshalText(data []byte) error {
 		return ErrInvalidVacancyStatus
 	}
 	*status = v
+	return nil
+}
+
+func (status *VacancyStatus) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case string:
+		return status.UnmarshalText([]byte(v))
+	case []byte:
+		return status.UnmarshalText(v)
+	}
 	return nil
 }
 

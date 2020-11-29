@@ -1,6 +1,11 @@
 CREATE SCHEMA vacancy;
 
-CREATE TYPE vacancy.STATUS AS enum ('none', 'draft', 'active', 'inactive');
+CREATE TYPE vacancy.STATUS AS enum (
+  'none',
+  'draft',
+  'active',
+  'inactive'
+);
 
 CREATE TABLE vacancy.vacancy (
   id            TEXT,

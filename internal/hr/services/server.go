@@ -166,7 +166,7 @@ func (srv *Server) CreateVacancy(w http.ResponseWriter, req *http.Request) {
 
 	err = writeJSON(w, http.StatusOK, vacancy)
 	if err != nil {
-		log.Printf("[error] [server] %s", err)
+		log.Printf("[error] [server] error creating vacancy: %s", err)
 	}
 }
 
@@ -175,7 +175,7 @@ func (srv *Server) UpdateVacancy(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
 	id, ok := mux.Vars(req)["id"]
-	if !ok || id != "c0c6c350-772b-4741-be33-0d5016134104" {
+	if !ok {
 		err := writeJSON(w, http.StatusNotFound, errors.New("not found"))
 		if err != nil {
 			log.Printf("[error] [server] %s", err)
@@ -183,12 +183,42 @@ func (srv *Server) UpdateVacancy(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var vacancy entities.Vacancy
-	err := json.NewDecoder(req.Body).Decode(&vacancy)
+	vacancyID, err := uuid.Parse(id)
 	if err != nil {
-		log.Printf("[warn] [server] %s", err)
+		log.Printf("[error] [server] error updating vacancy: %s", err)
+		err := writeError(w, http.StatusBadRequest, err)
+		if err != nil {
+			log.Printf("[error] [server] error updating vacancy: %s", err)
+		}
+		return
+	}
+
+	var vacancy entities.Vacancy
+	err = json.NewDecoder(req.Body).Decode(&vacancy)
+	if err != nil {
+		log.Printf("[error] [server] error updating vacancy: %s", err)
 		writeError(w, http.StatusBadRequest, err)
 		return
+	}
+	vacancy.ID = vacancyID
+
+	for i := 0; i < 5; i++ {
+		err = srv.vacancy.Update(req.Context(), &vacancy)
+		if err != nil {
+			continue
+		}
+		break
+	}
+
+	if err != nil {
+		log.Printf("[error] [server] error updating vacancy: %s", err)
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = writeJSON(w, http.StatusOK, vacancy)
+	if err != nil {
+		log.Printf("[error] [server] error updating vacancy: %s", err)
 	}
 }
 

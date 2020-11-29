@@ -140,7 +140,65 @@ func (repo *VacancyRepo) Update(
 	vacancy *entities.Vacancy,
 ) error {
 
-	return nil
+	tx, err := repo.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	vacancy.Updated = time.Now()
+
+	_, err = tx.Exec(
+		ctx,
+		`
+			UPDATES vacancy.vacancy SET
+				template_id = $2,
+				title = $3,
+				status = $4,
+				area = $5,
+				department = $6,
+				duties = $7,
+				requirements = $8,
+				experience = $9,
+				updated = $10
+			WHERE id = $1
+		`,
+		vacancy.ID,
+		vacancy.TemplateID,
+		vacancy.Title,
+		vacancy.Status.String(),
+		vacancy.Area,
+		vacancy.Department,
+		vacancy.Duties,
+		vacancy.Requirements,
+		vacancy.Experience,
+		vacancy.Updated,
+	)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	tx.Exec(ctx, `DELETE FROM vacancy.skill WHERE vacancy_id = $1`, vacancy.ID)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	for _, skill := range vacancy.Skills {
+		_, err = tx.Exec(
+			ctx,
+			`INSERT INTO vacancy.skill VALUES($1,$2,$3)`,
+			&vacancy.ID,
+			&skill.Title,
+			&skill.Important,
+		)
+		if err != nil {
+			tx.Rollback(ctx)
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (repo *VacancyRepo) List(ctx context.Context) ([]entities.Vacancy, error) {

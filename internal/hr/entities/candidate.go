@@ -52,6 +52,16 @@ func (gender *Gender) UnmarshalText(data []byte) error {
 	return nil
 }
 
+func (gender *Gender) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case string:
+		return gender.UnmarshalText([]byte(v))
+	case []byte:
+		return gender.UnmarshalText(v)
+	}
+	return nil
+}
+
 type EducationLevel byte
 
 const (
@@ -112,6 +122,16 @@ func (lvl *EducationLevel) UnmarshalText(data []byte) error {
 		return ErrInvalidEducationLevel
 	}
 	*lvl = v
+	return nil
+}
+
+func (lvl *EducationLevel) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case string:
+		return lvl.UnmarshalText([]byte(v))
+	case []byte:
+		return lvl.UnmarshalText(v)
+	}
 	return nil
 }
 
